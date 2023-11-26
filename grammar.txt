@@ -1,0 +1,17 @@
+header:             #...### -> \n
+horizontal_line:    ---\n
+ordered_list:       1. ->\n->\n
+unordered_list:     - ->\n
+task_list:          - [ ] ->\n|| - [x||X] ->\n
+table:              |
+code_block:         ```||```lang\n->```
+inline_code:        `->`
+quotation:          > ->\n
+content_embed:      ![->](->)
+hyperlink:          [->](->)
+plain_text:         ->
+bold:               **->**
+italic:             *->*
+underline:          __->__
+strikethrough:      ~~->~~
+spoiler:            ||->||

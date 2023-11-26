@@ -1,0 +1,3 @@
+/home/goose/Projects/anna/cmake-build-debug/CMakeFiles/anna.dir
+/home/goose/Projects/anna/cmake-build-debug/CMakeFiles/edit_cache.dir
+/home/goose/Projects/anna/cmake-build-debug/CMakeFiles/rebuild_cache.dir
