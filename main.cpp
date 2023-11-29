@@ -1,8 +1,9 @@
 #include <cstdio>
+#include <ftw.h>
 #include <cstdlib>
 #include "anna.h"
 
-const char* USAGE = "USAGE: anna filename [encoding]\nEncoding can be utf-8 (default) or utf-16.";
+const char* USAGE = "USAGE: anna <source> <dest> [encoding]\nEncoding can be utf-8 (default) or utf-16.";
 
 int main(int argc, char* argv[]) {
 
@@ -17,15 +18,17 @@ int main(int argc, char* argv[]) {
         return -1;
     }
 
-    switch (*argv[2]) {
-        case *"utf-16": {
-            anna<wchar_t> system;
-        } break;
-        default: {
-            anna<char> system;
-        }
+    if (*argv[2] == *"utf-16") {
+        anna<wchar_t> system{argv[1]};
+    } else {
+        anna<char> system{argv[1]};
     }
 
+
     return 0;
+
+    fail:
+        return 0;
+
 }
 

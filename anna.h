@@ -6,6 +6,8 @@
 #define ANNA_ANNA_H
 
 #include <vector>
+#include <ftw.h>
+#include <sys/stat.h>
 
 enum class flag {
     header,
@@ -30,7 +32,26 @@ enum class flag {
 template<typename T>
 struct anna {
 
-    anna() {}
+    explicit anna(char* source) {
+        if (ftw(source, load_file, 1024)) {
+
+        }
+    }
+
+    static int load_file(const char *fpath, const struct stat *sb, int typeflag) {
+
+    }
+
+    int lex_file(unsigned int length, T* body) {
+        unsigned int cursor = 0;
+
+        return 0;
+    };
+
+
+    void combinator(T* input, void (*parser)(T*)...) {
+        parser(input);
+    }
 
     struct string {
         unsigned int length;
@@ -41,17 +62,6 @@ struct anna {
         flag type;
         string content;
     };
-
-    struct lexer {
-        lexer(unsigned int length, T* body) : length{length}, input{body} {}
-        unsigned int length;
-        T* input;
-        unsigned int cursor;
-    };
-
-    void combinator(T* input, void (*parser)(T*)...) {
-        parser(input);
-    }
 
     string content;
     std::vector<token> tokens;
