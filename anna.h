@@ -8,6 +8,9 @@
 #include <vector>
 #include <ftw.h>
 #include <sys/stat.h>
+#include <cstring>
+
+#define NUM_OPEN_FILE_DESC 100
 
 enum class flag {
     header,
@@ -32,19 +35,62 @@ enum class flag {
 template<typename T>
 struct anna {
 
-    explicit anna(char* source) {
-        if (ftw(source, load_file, 1024)) {
+	struct string {
+        unsigned int length;
+        T* body;
+    };
+    
+	struct token {
+        flag type;
+        string content;
+    };
 
-        }
-    }
+    explicit anna(const char* start_path) {
+		// walk down files, calling load_file on each one
+		// if this works out, the lexer will have been called on each one
+		// next we throw the newly minted (lexed) tokens at the parser(s)
+		// then export to files
+		if (nftw(start_path, load_file, NUM_OPEN_FILE_DESC, BITFLAGS)) {
+					
+		}
+	}
 
-    static int load_file(const char *fpath, const struct stat *sb, int typeflag) {
+	static inline bool is_parent_path_of(string* a, string* b) {
+		if (a->length <= b->length) { return false; }
+		for (unsigned int i{}; i < a->length; i++) {
+			if (a->body[i] != b->body[i]) { return false; }
+		}
+		return true;
+	}
 
-    }
+	static inline int load_file(const char* file_path,
+			const struct stat* file_staus, int type_flag,
+			struct FTW* ftw_buffer) {
+		
+		static const size_t T_SIZE = sizeof (T);
+		
+		switch (type_flag) {
+			case FTW_F: {} break;
+			case FTW_SL: {
+				// if the symlink links to higher up, skip
+				//if (){} TODO 
+			} break;
+			default: { return 1; } // TODO err
+		}
 
-    int lex_file(unsigned int length, T* body) {
-        unsigned int cursor = 0;
+		// proceed if the file is markdown
+		unsigned int length = sizeof (*file_path) / T_SIZE;
+		T buff[2];
+		memcpy(&buff, &(file_path[length - 2]), 2);
+		if (*buff == *"md") {
+			const FILE file = fopen(file_path, "r");
+		}
+	}
 
+    static inline int lex_file(FILE file) {
+        // must load file as chunks because fopen is a stream
+		// this is better for memory consumption, anyway
+		//fread(void ptr[restrict .size * .nmemb], )
         return 0;
     };
 
@@ -53,16 +99,7 @@ struct anna {
         parser(input);
     }
 
-    struct string {
-        unsigned int length;
-        T* body;
-    };
-
-    struct token {
-        flag type;
-        string content;
-    };
-
+	int BITFLAGS = FTW_PHYS;
     string content;
     std::vector<token> tokens;
 
