@@ -1,49 +1,13 @@
-//
-// Created by goose on 11/25/23.
-//
+#include <cstdio>
 
-#ifndef ANNA_ANNA_H
-#define ANNA_ANNA_H
 
 #include <vector>
 #include <ftw.h>
 #include <sys/stat.h>
 #include <cstring>
 
-#define NUM_OPEN_FILE_DESC 100
-
-enum class flag {
-    header,
-    horizontal_line,
-    ordered_list,
-    unordered_list,
-    task_list,
-    table,
-    code_block,
-    inline_code,
-    quotation,
-    content_embed,
-    hyperlink,
-    plain_text,
-    bold,
-    italic,
-    underline,
-    strikethrough,
-    spoiler
-};
-
 template<typename T>
-struct anna {
-
-	struct string {
-        unsigned int length;
-        T* body;
-    };
-    
-	struct token {
-        flag type;
-        string content;
-    };
+struct markdown_renderer {
 
     explicit anna(const char* start_path) {
 		// walk down files, calling load_file on each one
@@ -51,7 +15,7 @@ struct anna {
 		// next we throw the newly minted (lexed) tokens at the parser(s)
 		// then export to files
 		if (nftw(start_path, load_file, NUM_OPEN_FILE_DESC, BITFLAGS)) {
-					
+
 		}
 	}
 
@@ -66,14 +30,14 @@ struct anna {
 	static inline int load_file(const char* file_path,
 			const struct stat* file_staus, int type_flag,
 			struct FTW* ftw_buffer) {
-		
+
 		static const size_t T_SIZE = sizeof (T);
-		
+
 		switch (type_flag) {
 			case FTW_F: {} break;
 			case FTW_SL: {
 				// if the symlink links to higher up, skip
-				//if (){} TODO 
+				//if (){} TODO
 			} break;
 			default: { return 1; } // TODO err
 		}
@@ -104,6 +68,3 @@ struct anna {
     std::vector<token> tokens;
 
 };
-
-
-#endif //ANNA_ANNA_H

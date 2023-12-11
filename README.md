@@ -1,5 +1,27 @@
-# anna
-Pronounced Anya, Anna is a small markdown renderer supporting a minimal subset of markdown.
+# Markdown Renderer (yes)
+
+## How to factory assembly line ceramic
+
+1. System will be initialized with a character type, either char (utf-8) or wchar (utf-16).
+2. Supplied path will be file tree walked
+3. Data will be LOADED in CHUNKS
+4. The lexer will look for control characters and assemble tokens with the following Al Gore rhythm (Al Gore invented the internet):
+```python
+token = [] # type-flagged vector buffer of characters
+tokens = [] # vector of tokens
+for character in chunk:
+    if character == escape_character:
+        tokens.append(token)
+        token.clear() # wipe the buffer clean
+        token.set_type(character) # set new type
+    else:
+        token.append(character)
+# Note, type denotes text modifier, e.g., 
+```
+In addition to trigger characters (the reserved markdown ones), leading EOF (implicitly) and newline will denote new tokens.
+Certain trigger characters which might signal a new token (such as *) will be invalidated if they are adjacent to some kind of whitespace.
+5. The parser will iterate over the tokens, building a stack-based HTML structure so things will be enclosed properly. 
+6. Export to a file
 
 ## Supported Markdown Features and Syntax
 | Feature         | Syntax              |
