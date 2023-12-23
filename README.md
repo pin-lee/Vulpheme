@@ -2,9 +2,9 @@
 
 ## How to factory assembly line ceramic
 
-1. System will be initialized with a character type, either char (utf-8) or wchar (utf-16).
+1. System will be supplied a path
 2. Supplied path will be file tree walked
-3. Data will be LOADED in CHUNKS
+3. Data will be loaded incrementally.
 4. The lexer will look for control characters and assemble tokens with the following Al Gore rhythm (Al Gore invented the internet):
 ```python
 token = [] # type-flagged vector buffer of characters
@@ -20,8 +20,8 @@ for character in chunk:
 ```
 In addition to trigger characters (the reserved markdown ones), leading EOF (implicitly) and newline will denote new tokens.
 Certain trigger characters which might signal a new token (such as *) will be invalidated if they are adjacent to some kind of whitespace.
-5. The parser will iterate over the tokens, building a stack-based HTML structure so things will be enclosed properly. 
-6. Export to a file
+1. The parser will iterate over the tokens, building a stack-based HTML structure so things will be enclosed properly. 
+2. Export to a file
 
 ## Supported Markdown Features and Syntax
 | Feature         | Syntax              |
@@ -43,6 +43,8 @@ Certain trigger characters which might signal a new token (such as *) will be in
 | Underline       | `__content__`       |
 | Strikethrough   | `~~content~~`       |
 | Spoiler         | `\|\|content\|\|`   |
+| Footnote
+
 
 ### Table
 
@@ -56,3 +58,10 @@ the whitespace around token identifiers gets removed by the lexer, so it doesn't
 Additionally, I hate having to write out the `|----|----|`, but I am keeping support for it for markdown reasons.
 Depending on how well I am able to get work done, I might support a superior version, `|-`.
 
+## Persistence and Data Oriented Design
+
+Use of a database system is necessary. SQLite3 has been selected. A table for source and destination files will be constructed.
+
+The justification for loading the whole file into memory with chunks into an arena is that memory is a lot faster to access than disk, so even though going character by character with an fread size of 1 would be *algorithmically* more efficient, the fact of the matter is that the disk is 10,000 times slower than memory, so several passes over the data are faster. Additionally, using an arena allocator will allow us to use the least amount of practical allocations, such that the memory used is within the *about* the same order of magnitude (hopefully) as the size of the largest file being processed.
+
+[Justification](https://stackoverflow.com/questions/1100311/what-is-the-ideal-growth-rate-for-a-dynamically-allocated-array) for 1.5 as the arena scaling factor.

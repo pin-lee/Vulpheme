@@ -33,6 +33,6 @@
 
 cmake-build-debug
 a.out
-
 build
-builddir
+.vscode
+tests
