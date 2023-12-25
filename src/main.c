@@ -8,38 +8,32 @@
 
 #define NOPENFD 100
 #define BUFF_S 1000
-#define SCALE_F 1.5
 
 char* buffer_arena = NULL;
 size_t buffer_size = BUFF_S;
 
-size_t load_file(FILE* file) {
-    size_t text_length = 0;
-    size_t cursor = 0;
-    size_t bytes_written = 0;
-    do {
-        bytes_written = fread(&buffer_arena[cursor], sizeof (char), BUFF_S, file);
-        cursor += bytes_written;
-        text_length += bytes_written;
-        if (text_length == buffer_size) {
-            size_t new_size = (size_t)((float)buffer_size * SCALE_F);
-            printf("Realocating from %ld bytes to %ld bytes. ", buffer_size, new_size);
-            buffer_arena = realloc(buffer_arena, new_size);
-            if (buffer_arena) {
-                printf("Reallocated, growing by %fx.", SCALE_F);
-                buffer_size *= SCALE_F;
-            } else {
-                puts("Failed to reallocate. Exiting.");
-                return 1;
-            }
+size_t load_file(FILE* file, const struct stat* sb) {
+    size_t text_length = sb->st_size;
+    if (text_length > buffer_size) {
+        buffer_arena = realloc(buffer_arena, text_length);
+        if (buffer_arena) {
+            printf("Reallocated buffer to %ld bytes.\n", text_length);
+            buffer_size = text_length;
+        } else {
+            puts("Failed to reallocate buffer.");
+            return 0;
         }
-    } while (bytes_written == BUFF_S);
-    buffer_arena[text_length] = '\0';
-    return text_length;
+    }
+
+    fread(buffer_arena, sizeof (char), text_length, file);
+    printf("%s\n", buffer_arena);
+
+    return sb->st_size;
 }
 
-int tokenize(size_t text_length) { // lex the file
-    
+int tokenize(size_t text_length) {
+    // lex the file into tokens
+    // build the word database
     printf("%s\n", buffer_arena);
     return 0;
 }
@@ -49,7 +43,6 @@ int handle_file(const char *fpath, const struct stat *sb, int typeflag, struct F
         case FTW_F: {
             int len = get_str_len(fpath);
             printf("%s has %d characters.\n", fpath, len);
-            
         } break;
         case FTW_D: return 0;
         default: {
@@ -63,7 +56,7 @@ int handle_file(const char *fpath, const struct stat *sb, int typeflag, struct F
     }
 
     FILE* file = fopen(fpath, "r");
-    tokenize(load_file(file));
+    tokenize(load_file(file, sb));
     
 }
 
