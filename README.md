@@ -61,7 +61,3 @@ Depending on how well I am able to get work done, I might support a superior ver
 ## Persistence and Data Oriented Design
 
 Use of a database system is necessary. SQLite3 has been selected. A table for source and destination files will be constructed.
-
-The justification for loading the whole file into memory with chunks into an arena is that memory is a lot faster to access than disk, so even though going character by character with an fread size of 1 would be *algorithmically* more efficient, the fact of the matter is that the disk is 10,000 times slower than memory, so several passes over the data are faster. Additionally, using an arena allocator will allow us to use the least amount of practical allocations, such that the memory used is within the *about* the same order of magnitude (hopefully) as the size of the largest file being processed.
-
-[Justification](https://stackoverflow.com/questions/1100311/what-is-the-ideal-growth-rate-for-a-dynamically-allocated-array) for 1.5 as the arena scaling factor.

@@ -1,16 +1,25 @@
+#define _XOPEN_SOURCE 500 // Feature Test Macro Requirements for glibc `man nftw`
+
 #include <stdio.h>
 #include <ftw.h>
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <stdbool.h>
 #include "include/mrender.h"
+#include "include/vector.h"
 #include <sqlite3.h>
 
-#define NOPENFD 100
 #define BUFF_S 1000
 
 char* buffer_arena = NULL;
 size_t buffer_size = BUFF_S;
+vector tokens;
+
+int get_str_len(const char* body) {
+    int length = 0;
+    while (body[length] != '\0') { length++; }
+    return length;
+}
 
 size_t load_file(FILE* file, const struct stat* sb) {
     size_t text_length = sb->st_size;
@@ -24,18 +33,8 @@ size_t load_file(FILE* file, const struct stat* sb) {
             return 0;
         }
     }
-
     fread(buffer_arena, sizeof (char), text_length, file);
-    printf("%s\n", buffer_arena);
-
-    return sb->st_size;
-}
-
-int tokenize(size_t text_length) {
-    // lex the file into tokens
-    // build the word database
-    printf("%s\n", buffer_arena);
-    return 0;
+    return (size_t) sb->st_size;
 }
 
 int handle_file(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
@@ -56,34 +55,19 @@ int handle_file(const char *fpath, const struct stat *sb, int typeflag, struct F
     }
 
     FILE* file = fopen(fpath, "r");
-    tokenize(load_file(file, sb));
-    
+    tokenize(buffer_arena, load_file(file, sb));
+    return 0;
 }
-
-inline int get_str_len(const char* body) {
-    int length = 0;
-    while (body[length] != '\0') { length++; }
-    return length;
-}
-
-inline bool is_parent_path_of(string* a, string* b) {
-	if (a->length <= b->length) { return false; }
-	for (unsigned int i = 0; i < a->length; i++) {
-		if (a->body[i] != b->body[i]) { return false; }
-	}
-	return true;
-}
-
 
 int main(int argc, char* argv[]) {
 
     buffer_arena = malloc(BUFF_S);
+    tokens = vector_create(token);
 
     if (!argv[1] || !argv[2]) {
         printf("USAGE: %s <src> <dest>\n", argv[0]);
         return 1;
     }
     nftw(argv[1], handle_file, NOPENFD, 0);
-    
     return 0;
 }

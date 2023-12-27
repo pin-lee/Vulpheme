@@ -15,3 +15,16 @@ italic:             *->*
 underline:          __->__
 strikethrough:      ~~->~~
 spoiler:            ||->||
+
+#
+-
+1. (num)
+|
+\ (skip next)
+`
+>
+!
+[
+*
+_
+~
