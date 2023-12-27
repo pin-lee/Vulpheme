@@ -13,7 +13,7 @@
 
 char* buffer_arena = NULL;
 size_t buffer_size = BUFF_S;
-vector* tokens = NULL;
+vector tokens;
 
 int get_str_len(const char* body) {
     int length = 0;
@@ -34,7 +34,7 @@ size_t load_file(FILE* file, const struct stat* sb) {
         }
     }
     fread(buffer_arena, sizeof (char), text_length, file);
-    return (size_t) sb->st_size;
+    return text_length;
 }
 
 int handle_file(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
@@ -60,13 +60,17 @@ int handle_file(const char *fpath, const struct stat *sb, int typeflag, struct F
 }
 
 int main(int argc, char* argv[]) {
+    
     buffer_arena = malloc(BUFF_S);
     tokens = vector_create(token);
+    printf("%ld\n", tokens->size);
+    tokenize("test", 4, tokens);
     if (!argv[1] || !argv[2]) {
         printf("USAGE: %s <src> <dest>\n", argv[0]);
         return 1;
     }
-    nftw(argv[1], handle_file, NOPENFD, 0);
+    //nftw(argv[1], handle_file, NOPENFD, 0);
+    
     vector_free(tokens);
     return 0;
 }

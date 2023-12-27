@@ -4,12 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-// growth factor
-#define GR_F 1.5
-
-// starting size
-#define ST_S 8
-
 typedef struct vector {
     size_t element_size;
     size_t size;
@@ -20,23 +14,30 @@ typedef struct vector {
 #define vector_create(type) _vector_create(sizeof (type))
 vector* _vector_create(size_t type_size) {
     return &(vector) {
-        .element_size = type_size, .size = ST_S, .length = 0, .elements = 0 };
+        .size = 0,
+        .element_size = type_size,
+        .length = 0,
+        .elements = NULL,
+    };
 }
 
-#define BYTE_ARRAY char* byte_array = (char*) vec->elements; 
-
-void vector_add(vector* vec, void* element) {
+void* vector_add(vector* vec, void* element) {
+    puts("Made it here.\n");
     if (vec->element_size * (vec->length+1) >= vec->size) {
-        vec = (vector*) realloc(vec->elements, vec->size * GR_F);
-        vec->size *= GR_F;
+        puts("Reallocating vector.");
+        vec->elements = realloc(vec->elements, vec->size += vec->size / 2);
+        vec->size += vec->size / 2;
     }
     size_t cursor = vec->length * vec->element_size;
-    BYTE_ARRAY; memcpy(&byte_array[cursor], element, vec->element_size);
+    char* byte_array = (char*) vec->elements; 
+    memcpy(&byte_array[cursor], element, vec->element_size);
     vec->length++;
+    return &(byte_array[cursor]);
 }
 
 void* vector_get(vector* vec, size_t index) {
-    BYTE_ARRAY; return &byte_array[index * vec->element_size];
+    char* byte_array = (char*) vec->elements; 
+    return &byte_array[index * vec->element_size];
 }
 
 void vector_free(vector* vec) {

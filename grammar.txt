@@ -16,6 +16,8 @@ underline:          __->__
 strikethrough:      ~~->~~
 spoiler:            ||->||
 
+ignore `\t` and ` `
+`\n`
 #
 -
 1. (num)

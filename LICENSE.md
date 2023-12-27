@@ -1,10 +1,12 @@
-# Contents
-- [Contents](#contents)
-  - [Vulpheme License](#vulpheme-license)
-  - [morphemes License](#morphemes-license)
-  - [WordNet License](#wordnet-license)
+# Vulpheme Combined License Document
+Individual licenses for involved works are delineated by seperated sections, which are titled with the word "License".
 
-## [Vulpheme License]()
+## Contents
+1. [Vulpheme License](#vulpheme-license)
+2. [morphemes License](#morphemes-license)
+3. [WordNet License](#wordnet-license)
+
+## [Vulpheme License](https://github.com/pin-lee/vulpheme)
 MIT License
 
 Copyright (c) 2023 Brayden "Pin" Lee
@@ -26,7 +28,6 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
-
 
 ## [morphemes License](https://github.com/colingoldberg/morphemes/tree/master)
 MIT License

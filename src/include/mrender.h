@@ -94,80 +94,28 @@ token* token_create() {
     return &(token) { .type = _UNTYPED, .length = 0, .body = NULL };
 }
 
-#define CHECK_SET_TOKEN_TYPE(t_type) if (!current_token->type)\
-{ current_token->type = t_type; }
-
-#define TOKEN_BODY_SET(start, t_length) current_token->body = &text[start];\
-current_token->length = t_length;
-
-#define NEW_TOKEN           vector_add(tokens, token_create());
-#define SET_CURRENT_TOKEN   current_token = (token*)vector_get(tokens, tokens->length);
-#define TRAVERSE_TO(term)   while (i < text_length && text[i] != term) { i++; }
-#define END_TOKEN           current_token->length = token_length;
-
 int tokenize(char* text, size_t text_length, vector* tokens) {
-    if (!text_length) return 0;
-    // lex the file into tokens
-    // build the word database
-    // if number, do
-    size_t token_length, i = 0;
-    NEW_TOKEN;
-    token* current_token = NULL; SET_CURRENT_TOKEN;
-    goto first_in_line;
-    while (i < text_length) {
-        switch (text[i]) { // TODO ADD LOOK-AHEAD USING MD_PD_ VALUES TO CHECK FOR EOF
-            case ('\n'): {
-                END_TOKEN;
-                while(text[++i] == '\t' || text[i] == ' '); // skip whitespace
-                // TODO, end single line tokens here
-                first_in_line:
-                if ('1' <= text[i] && text[i] <= '9') { // ORDERED LIST
-                    while ('0' <= text[++i] && text[i] <= '9');
-                    if (text[i] == '.' && text[++i] == ' ') {
-                        // TODO
-                    } 
-                }
-                switch (text[++i]) {
-                    case ('#'): { // HEADER
-                        int level = 1;
-                        while (text[++i] == '#') { level++; }
-                        if (text[i] == ' ') {
-                            if (level > 6) { level = 6; }
-                            CHECK_SET_TOKEN_TYPE(HEADER_ + level);
-                        }
-                    } break;
-                    case ('-'): { // UNORDERED LIST & TASK LIST
-                        if (text[++i] == ' ' && text[++i] != '\n') {
-                            
-                        }
-                    } break;
-                    case ('>'): { // BLOCK QUOTE
 
-                    } break;
-                }
-            } break;
-            case ('|'): {
-                if (text[++i] == '|' && text[++i] != ' ' && text[i] != '\n') {
-                    size_t content_start = i;
-                    TRAVERSE_TO('|');
-                    token_length = i - content_start;
-                    END_TOKEN;
-                }
-            } break;
-            case ('\\'): { // escape, skip next char
-                i += 2; continue;
-            } break;
-            case ('`'): {} break;
-            case ('!'): {} break;
-            case ('['): {} break;
-            case ('*'): {} break;
-            case ('_'): {} break;
-            case ('~'): {} break;
-            default: { ;; }
-        }
-        i++;
-    } 
+	printf("%ld\n", tokens->size);
+    
+    if (text_length == 0) return 0; // Skip empty file
 
-    printf("%s\n", text);
-    return 0;
+    token* cur_token    = NULL;
+    size_t token_length = 0;
+    size_t cursor       = 0;
+
+    #define CREATE  cur_token = vector_add(tokens, token_create());
+    #define TYPE    cur_token->type;
+    #define BODY    cur_token->body;
+    #define LENGTH  cur_token->length;
+    #define END     BODY = &text[cursor];\
+                    LENGTH = token_length;\
+                    cur_token = NULL;
+    
+    CREATE;
+    //goto start;
+    switch (text[cursor++]) {
+		default:
+        	printf("%c", text[cursor]);
+    } while (cursor < text_length);
 }
