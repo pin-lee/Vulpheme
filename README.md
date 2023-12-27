@@ -1,6 +1,15 @@
-# Markdown Renderer (yes)
+# Vulpheme
 
-## How to factory assembly line ceramic
+
+## Vulpes Lemma - NLP
+
+### Sources
+- https://wordnet.princeton.edu/
+- https://github.com/colingoldberg/morphemes
+
+## Markdown Renderer
+
+### Operation
 
 1. System will be supplied a path
 2. Supplied path will be file tree walked
@@ -23,7 +32,7 @@ Certain trigger characters which might signal a new token (such as *) will be in
 1. The parser will iterate over the tokens, building a stack-based HTML structure so things will be enclosed properly. 
 2. Export to a file
 
-## Supported Markdown Features and Syntax
+### Supported Markdown Features and Syntax
 | Feature         | Syntax              |
 |-----------------|---------------------|
 | Header          | `#` `##` `###`      |
@@ -46,7 +55,7 @@ Certain trigger characters which might signal a new token (such as *) will be in
 | Footnote
 
 
-### Table
+#### Table
 
 If you have
 ```markdown
@@ -58,6 +67,6 @@ the whitespace around token identifiers gets removed by the lexer, so it doesn't
 Additionally, I hate having to write out the `|----|----|`, but I am keeping support for it for markdown reasons.
 Depending on how well I am able to get work done, I might support a superior version, `|-`.
 
-## Persistence and Data Oriented Design
+### Persistence and Data Oriented Design
 
 Use of a database system is necessary. SQLite3 has been selected. A table for source and destination files will be constructed.

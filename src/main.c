@@ -5,15 +5,15 @@
 #include <stdlib.h>
 #include <sys/stat.h>
 #include <stdbool.h>
-#include "include/mrender.h"
 #include "include/vector.h"
+#include "include/mrender.h"
 #include <sqlite3.h>
 
 #define BUFF_S 1000
 
 char* buffer_arena = NULL;
 size_t buffer_size = BUFF_S;
-vector tokens;
+vector* tokens = NULL;
 
 int get_str_len(const char* body) {
     int length = 0;
@@ -55,19 +55,18 @@ int handle_file(const char *fpath, const struct stat *sb, int typeflag, struct F
     }
 
     FILE* file = fopen(fpath, "r");
-    tokenize(buffer_arena, load_file(file, sb));
+    tokenize(buffer_arena, load_file(file, sb), tokens);
     return 0;
 }
 
 int main(int argc, char* argv[]) {
-
     buffer_arena = malloc(BUFF_S);
     tokens = vector_create(token);
-
     if (!argv[1] || !argv[2]) {
         printf("USAGE: %s <src> <dest>\n", argv[0]);
         return 1;
     }
     nftw(argv[1], handle_file, NOPENFD, 0);
+    vector_free(tokens);
     return 0;
 }
