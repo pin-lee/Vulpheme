@@ -12,8 +12,8 @@ typedef struct vector {
 } vector;
 
 #define vector_create(type) _vector_create(sizeof (type))
-vector* _vector_create(size_t type_size) {
-    return &(vector) {
+vector _vector_create(size_t type_size) {
+    return (vector) {
         .size = 0,
         .element_size = type_size,
         .length = 0,

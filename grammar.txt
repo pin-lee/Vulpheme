@@ -15,6 +15,13 @@ italic:             *->*
 underline:          __->__
 strikethrough:      ~~->~~
 spoiler:            ||->||
+definition list
+highlight
+
+
+heading id (linking to section as #), already supported as hyperlink.
+build a table of linked-to headers and insert into their HTML id.
+Alternatively, give them all HTML ids
 
 ignore `\t` and ` `
 `\n`
@@ -30,3 +37,5 @@ ignore `\t` and ` `
 *
 _
 ~
+:
+=

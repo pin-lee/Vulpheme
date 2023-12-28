@@ -3,41 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 #include "vector.h"
+#include "html.h"
 
 #define NOPENFD 100
-
-/* HTML PADDING documentation
- * The ensuing preprocessor directives are used to tell the parser how much
- * memory to allocate for formatted output.
-*/
-#define PD_BOLD 			sizeof ("<b></b>")							- 1
-#define PD_BREAK			sizeof ("<br>")								- 1
-#define PD_CODE_BLOCK		sizeof ("<pre><code></code></pre>")			- 1
-#define PD_CONTENT_EMBED	sizeof ("<embed src=""/>")					- 1
-#define PD_HEADER_1			sizeof ("<h1></h1>")						- 1
-#define PD_HEADER_2			sizeof ("<h2></h2>")						- 1
-#define PD_HEADER_3			sizeof ("<h3></h3>")						- 1
-#define PD_HEADER_4			sizeof ("<h4></h4>")						- 1
-#define PD_HEADER_5			sizeof ("<h5></h5>")						- 1
-#define PD_HEADER_6			sizeof ("<h6></h6>")						- 1
-#define PD_HORIZONTAL_LINE	sizeof ("<hr>")								- 1
-#define PD_FOOTER			sizeof ("<footer></footer>")				- 1
-#define PD_HYPERLINK		sizeof ("<a href=""></a>")					- 1
-#define PD_INLINE_CODE		sizeof ("<code></code>")					- 1
-#define PD_ITALIC			sizeof ("<em></em>")						- 1
-#define PD_LIST_ELEMENT		sizeof ("<li></li>")						- 1
-#define PD_ORDERED_LIST		sizeof ("<ol></ol>")						- 1
-#define PD_PLAIN_TEXT		sizeof ("<p></p>")							- 1
-#define PD_QUOTATION		sizeof ("<blockquote></blockquote>")		- 1
-#define PD_SPOILER			sizeof ("<span class=\"spoiler\"></span>")	- 1
-#define PD_STRIKETHROUGH	sizeof ("<s></s>")							- 1
-#define PD_TABLE			sizeof ("<table></table>")					- 1
-#define PD_TABLE_DATA		sizeof ("<td></td>")						- 1
-#define PD_TABLE_ROW		sizeof ("<tr></tr>")						- 1
-#define PD_TASK_FINISHED	sizeof ("<ul class=\"task_list\"></ul>")	- 1
-#define PD_TASK_UNFINISHED	sizeof ("<ul class=\"task_list\"></ul>")	- 1
-#define PD_UNDERLINE		sizeof ("<u></u>")							- 1
-#define PD_UNORDERED_LIST	sizeof ("<ul></ul>")						- 1
 
 /* TokenFlag documentation
  * A noteworthy specific of operation which is not immediately apparent is 
@@ -63,6 +31,7 @@ enum TokenFlag {
 	HEADER_4,
 	HEADER_5,
 	HEADER_6,
+	HIGHLIGHT,
 	HORIZONTAL_LINE,
 	FOOTER,
 	HYPERLINK,
@@ -82,6 +51,14 @@ enum TokenFlag {
 	TASK_UNFINSHED,
 	UNDERLINE,
 	UNORDERED_LIST,
+
+	END_BOLD,
+	END_HIGHLIGHT,
+	END_ITALIC,
+	END_SPOILER,
+	END_STRIKETHROUGH,
+	END_UNDERLINE,
+
 };
 
 typedef struct token {
@@ -108,14 +85,43 @@ int tokenize(char* text, size_t text_length, vector* tokens) {
     #define TYPE    cur_token->type;
     #define BODY    cur_token->body;
     #define LENGTH  cur_token->length;
-    #define END     BODY = &text[cursor];\
-                    LENGTH = token_length;\
-                    cur_token = NULL;
+    #define END     BODY = &text[cursor]; LENGTH = token_length; CREATE;
     
     CREATE;
     //goto start;
-    switch (text[cursor++]) {
-		default:
-        	printf("%c", text[cursor]);
-    } while (cursor < text_length);
+    while (cursor < text_length) {
+		switch (text[cursor]) {
+			/* Block Token Processing
+			 * 
+			*/
+			case '\n': {
+				switch (++cursor) {
+					case '': {
+
+					} break;
+					default: {
+						// check numbers
+					} break;
+			}} break;
+
+			/* Escaped Character Processing: Skip */
+			case '\\': {} break;
+
+
+			case '|': {} break;
+			case '`': {} break;
+			case 'h': {
+				/* Link processing
+				 *
+				*/
+				
+			} break;
+			case '[': {} break;
+			case '*': {} break;
+			case '_': {} break;
+			case '~': {} break;
+			case '=': {} break;
+		}
+		cursor++;
+	}
 }

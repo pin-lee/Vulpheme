@@ -55,7 +55,7 @@ int handle_file(const char *fpath, const struct stat *sb, int typeflag, struct F
     }
 
     FILE* file = fopen(fpath, "r");
-    tokenize(buffer_arena, load_file(file, sb), tokens);
+    tokenize(buffer_arena, load_file(file, sb), &tokens);
     return 0;
 }
 
@@ -63,14 +63,14 @@ int main(int argc, char* argv[]) {
     
     buffer_arena = malloc(BUFF_S);
     tokens = vector_create(token);
-    printf("%ld\n", tokens->size);
-    tokenize("test", 4, tokens);
+    printf("%ld\n", tokens.size);
+    tokenize("test", 4, &tokens);
     if (!argv[1] || !argv[2]) {
         printf("USAGE: %s <src> <dest>\n", argv[0]);
         return 1;
     }
     //nftw(argv[1], handle_file, NOPENFD, 0);
     
-    vector_free(tokens);
+    vector_free(&tokens);
     return 0;
 }
