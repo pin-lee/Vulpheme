@@ -21,7 +21,7 @@ int get_str_len(const char* body) {
     return length;
 }
 
-size_t load_file(FILE* file, const struct stat* sb) {
+int load_file(FILE* file, const struct stat* sb) {
     size_t text_length = sb->st_size;
     if (text_length > buffer_size) {
         buffer_arena = realloc(buffer_arena, text_length);
@@ -30,19 +30,19 @@ size_t load_file(FILE* file, const struct stat* sb) {
             buffer_size = text_length;
         } else {
             puts("Failed to reallocate buffer.");
-            return 0;
+            return 1;
         }
     }
     fread(buffer_arena, sizeof (char), text_length, file);
-    return text_length;
+    return 0;
 }
 
 int handle_file(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
     switch (typeflag) {
         case FTW_F: {
             FILE* file = fopen(fpath, "r");
-            tokenize(buffer_arena, load_file(file, sb), &tokens);
-
+            if (!load_file(file, sb)) { return 1; }
+            tokenize(buffer_arena, sb->st_size, &tokens);
         } break;
         case FTW_D: return 0;
         default: {
@@ -64,12 +64,12 @@ int main(int argc, char* argv[]) {
     buffer_arena = malloc(BUFF_S);
     tokens = vector_create(token);
 
-    #define TS "- [x] Finished\n- [ ] Unfinished"
-    tokenize(TS, sizeof (TS) - 1, &tokens);
+    #define TS "- [x] Finished\n- Normal List\n- [ ] Unfinished\n# Header\n## H2\n: eee\n> quote"
+    tokenize(TS, sizeof (TS), &tokens);
 
     if (!argv[1] || !argv[2]) {
         printf("USAGE: %s <src> <dest>\n", argv[0]);
-        return 1;
+        return 0;
     }
     nftw(argv[1], handle_file, NOPENFD, 0);
     

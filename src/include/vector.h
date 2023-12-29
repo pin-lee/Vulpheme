@@ -15,10 +15,10 @@ typedef struct vector {
 #define vector_create(type) _vector_create(sizeof (type))
 vector _vector_create(size_t type_size) {
     return (vector) {
-        .size = INIT_SIZE,
+        .size = INIT_SIZE * type_size,
         .element_size = type_size,
         .length = 0,
-        .elements = malloc(INIT_SIZE),
+        .elements = malloc(INIT_SIZE * type_size),
     };
 }
 

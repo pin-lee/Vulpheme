@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include "vector.h"
@@ -38,6 +39,8 @@ enum TokenFlag {
 	HYPERLINK,
 	INLINE_CODE,
 	ITALIC,
+	LINK_TARGET,
+	LINK_TEXT,
 	LIST_ELEMENT,
 	ORDERED_LIST,
 	PLAIN_TEXT,
@@ -89,15 +92,23 @@ int tokenize(char* text, size_t text_length, vector* tokens) {
     if (text_length == 0) return 0; // Skip empty file
 
 	token* cur_token_ptr = NULL;
-    token cur_token_buff;
-	bool modifier_stack[INLINE_ENDABLE_AMOUNT] = { false };
+	token* modifier_stack[INLINE_ENDABLE_AMOUNT] = { NULL };
     size_t cursor       = 0;
 
-    #define CREATE  cur_token_buff = token_create(); cur_token_ptr = vector_add(tokens, &cur_token_buff);
+	/* CREATE Macro Explanation
+	 * Limiting the scope of _cur_token_buff prevents it from being accessed
+	 * in other areas of the routine. It exists purely as a transient location
+	 * for the token to live as it is moving through the initialization stage
+	 * of the token lifecycle.
+	 */
+    #define CREATE	{ token _cur_token_buff = token_create();\
+	cur_token_ptr = vector_add(tokens, &_cur_token_buff); }
+
     #define TYPE    cur_token_ptr->type
     #define BODY    cur_token_ptr->body
     #define LENGTH  cur_token_ptr->length
 	#define NEXT	text[++cursor]
+	#define KILL(i)	text[i] = 0x1B;
     
     CREATE;
     goto start;
@@ -108,6 +119,7 @@ int tokenize(char* text, size_t text_length, vector* tokens) {
 			 * 
 			*/
 			case '\n': {
+				*modifier_stack = NULL;
 				CREATE;
 				switch (NEXT) {
 				start:
@@ -122,46 +134,106 @@ int tokenize(char* text, size_t text_length, vector* tokens) {
 									case ('x'):
 									case ('X'): TYPE = TASK_FINISHED; break;
 								} 
-								BODY = &text[cursor + 3]; cursor += 2;
-								goto lex_end;
+								BODY = &text[cursor + 3]; cursor += 3;
+								break;
 							}
 							// normal list
 							TYPE = LIST_ELEMENT;
+							BODY = &text[cursor];
+							break;
 						}
 					} break;
-					case '#': {} break;
-					case '>': {} break;
-					case '`': {} break;
-					case ':': {} break;
+					case '#': {
+						int level = 1;
+						while (NEXT == '#') { level++; };
+						if (text[cursor] == ' ') {
+							BODY = &NEXT;
+							if (level > 6) { level = 6; };
+							TYPE = HEADER_ + level;
+							break;
+						} else {
+							TYPE = PLAIN_TEXT;;
+							BODY = &text[cursor - level + 1];
+						}
+					} break;
+					case '>': {
+						if (NEXT == ' ') {
+							TYPE = QUOTATION;
+							BODY = &NEXT;
+							break;
+						} else { TYPE = PLAIN_TEXT; BODY = &text[cursor - 2]; }
+					} break;
+					case ':': {
+						if (NEXT == ' ') {
+							TYPE = DEFINITION_DATA;
+							BODY = &NEXT;
+						} else { TYPE = PLAIN_TEXT; BODY = &text[cursor - 2]; }
+					} break;
 					default: {
 						// check numbers
+						if (NEXT >= '1' && text[cursor] <= '9') {
+							size_t start = cursor;
+							while (NEXT >= '0' && text[cursor] <= '9');
+							if (text[cursor] == '.' && NEXT == ' ') {
+								TYPE = ORDERED_LIST;
+								BODY = &NEXT;
+								break;
+							} else {
+								TYPE = PLAIN_TEXT;
+								BODY = &text[start];
+							}
+						}
 					} break;
 			}} break;
 
 			/* Escaped Character Processing: Skip */
 			case '\\': {
+				KILL(cursor);
 				cursor++;
 			} break;
 
-			case '|': {} break;
-			case '`': {
-				// Note: Code blocks are handled above. This path is strictly for inline code.
+			case '|': {
+				if (NEXT == '|') {
+					if (modifier_stack[IT_SPOILER]) {
+						TYPE = END_SPOILER;
+						modifier_stack[IT_SPOILER] = NULL;
+						KILL(cursor); KILL(cursor - 1);
+					} else if (NEXT !=' ') {
+						CREATE; modifier_stack[IT_SPOILER] = cur_token_ptr;
+						TYPE = SPOILER;
+						BODY = &text[cursor];
+						KILL(cursor - 1); KILL(cursor - 1);
+					} 
+				}
+			} break;
+			case '`': { // code blocks can happen at end of line. inline can happen anywhere
+			
 			} break;
 
 			/* (Hyper)Links and Embeds
 			 *
 			*/
+			case '!': {
+				/*
+				if (NEXT == '[') {
+					int i = 0;
+					NEXT;
+					while (text[cursor + i] != ']' && i < 2048) { i++; }
+					CREATE;
+					if (text[cursor + i] == ']') {
+						TYPE = CONTENT_EMBED;
+						BODY = &text[cursor];
+						LENGTH = i;
+					} else {
+						TYPE = PLAIN_TEXT;
+						BODY = &text[cursor - 1];
+					}
+				} */
+			} break;
 			case '[': {
 				switch (NEXT) {
-					case 'h': {
-						/* Link processing
-						* Do a lookahead for the `p` in http(s)
-						* Do a lookahead for the `:`
-						* Check for the remaining `t`s and `/`s.
-						* If all checks, succeed, create URL token.
-						*/
-						
-					} break;
+					// ]
+					// words
 				}
 			} break;
 			case '*': {} break;
@@ -169,25 +241,21 @@ int tokenize(char* text, size_t text_length, vector* tokens) {
 			case '~': {} break;
 			case '=': {} break;
 			default: {
-				LENGTH++;
+				
 			}
 		}
-	lex_end:
+		LENGTH++;
 		cursor++;
 		continue;
-	plain_text:
-		TYPE = PLAIN_TEXT;
-		goto lex_end;
 	}
 
 	for (size_t i = 0; i < tokens->length; i++) {
-		printf("There are %ld tokens.", tokens->length);
-		token t = *(token*)vector_get(tokens, i);
-		printf("The current token is %ld characters long.", t.length);
-		for (size_t j = 0; j < t.length; j++) {
-			printf("%c", t.body[j]);
+		token* t = (token*)vector_get(tokens, i);
+		for (size_t j = 0; j < t->length; j++) {
+			printf("%c", t->body[j]);
 		}
 		printf("\n");
 	}
 
+	return 0;
 }
