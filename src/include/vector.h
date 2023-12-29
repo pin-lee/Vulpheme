@@ -11,13 +11,14 @@ typedef struct vector {
     void* elements;
 } vector;
 
+#define INIT_SIZE 16
 #define vector_create(type) _vector_create(sizeof (type))
 vector _vector_create(size_t type_size) {
     return (vector) {
-        .size = 0,
+        .size = INIT_SIZE,
         .element_size = type_size,
         .length = 0,
-        .elements = NULL,
+        .elements = malloc(INIT_SIZE),
     };
 }
 
@@ -30,7 +31,7 @@ void* vector_add(vector* vec, void* element) {
     char* byte_array = (char*) vec->elements; 
     memcpy(&byte_array[cursor], element, vec->element_size);
     vec->length++;
-    return &(byte_array[cursor]);
+    return &byte_array[cursor];
 }
 
 void* vector_get(vector* vec, size_t index) {

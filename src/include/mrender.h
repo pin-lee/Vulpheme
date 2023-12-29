@@ -62,17 +62,17 @@ enum TokenFlag {
 
 };
 
-enum MultiInlineTokenBitset {
-	MITD_BOLD,
-	MITD_HIGHLIGHT,
-	MITD_ITALIC,
-	MITD_SPOILER,
-	MITD_STRIKETHROUGH,
-	MITD_UNDERLINE,
-	_MITB_END
+enum InlineToken {
+	IT_BOLD,
+	IT_HIGHLIGHT,
+	IT_ITALIC,
+	IT_SPOILER,
+	IT_STRIKETHROUGH,
+	IT_UNDERLINE,
+	_IT_END
 };
 
-#define INLINE_ENDABLE_AMOUNT _MITB_END
+#define INLINE_ENDABLE_AMOUNT _IT_END
 
 typedef struct token {
 	enum TokenFlag type;
@@ -80,24 +80,23 @@ typedef struct token {
 	char* body;
 } token;
 
-token* token_create() {
-    return &(token) { .type = _UNTYPED, .length = 0, .body = NULL };
+token token_create() {
+    return (token) { .type = _UNTYPED, .length = 0, .body = NULL };
 }
 
 int tokenize(char* text, size_t text_length, vector* tokens) {
     
     if (text_length == 0) return 0; // Skip empty file
 
-    token* cur_token    = NULL;
-	token* overlapping_token_stack[INLINE_ENDABLE_AMOUNT] = { NULL };
-    size_t token_length = 0;
+	token* cur_token_ptr = NULL;
+    token cur_token_buff;
+	bool modifier_stack[INLINE_ENDABLE_AMOUNT] = { false };
     size_t cursor       = 0;
 
-    #define CREATE  cur_token = vector_add(tokens, token_create());
-    #define TYPE    cur_token->type
-    #define BODY    cur_token->body
-    #define LENGTH  cur_token->length
-    #define END     LENGTH = token_length;
+    #define CREATE  cur_token_buff = token_create(); cur_token_ptr = vector_add(tokens, &cur_token_buff);
+    #define TYPE    cur_token_ptr->type
+    #define BODY    cur_token_ptr->body
+    #define LENGTH  cur_token_ptr->length
 	#define NEXT	text[++cursor]
     
     CREATE;
@@ -109,7 +108,7 @@ int tokenize(char* text, size_t text_length, vector* tokens) {
 			 * 
 			*/
 			case '\n': {
-				END; CREATE;
+				CREATE;
 				switch (NEXT) {
 				start:
 					case '-': {
@@ -170,7 +169,7 @@ int tokenize(char* text, size_t text_length, vector* tokens) {
 			case '~': {} break;
 			case '=': {} break;
 			default: {
-				token_length++;
+				LENGTH++;
 			}
 		}
 	lex_end:
@@ -180,7 +179,6 @@ int tokenize(char* text, size_t text_length, vector* tokens) {
 		TYPE = PLAIN_TEXT;
 		goto lex_end;
 	}
-	END;
 
 	for (size_t i = 0; i < tokens->length; i++) {
 		printf("There are %ld tokens.", tokens->length);

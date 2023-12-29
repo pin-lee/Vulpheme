@@ -40,8 +40,9 @@ size_t load_file(FILE* file, const struct stat* sb) {
 int handle_file(const char *fpath, const struct stat *sb, int typeflag, struct FTW *ftwbuf) {
     switch (typeflag) {
         case FTW_F: {
-            int len = get_str_len(fpath);
-            printf("%s has %d characters.\n", fpath, len);
+            FILE* file = fopen(fpath, "r");
+            tokenize(buffer_arena, load_file(file, sb), &tokens);
+
         } break;
         case FTW_D: return 0;
         default: {
@@ -54,8 +55,7 @@ int handle_file(const char *fpath, const struct stat *sb, int typeflag, struct F
         // todo copy over non-md files to dest
     }
 
-    FILE* file = fopen(fpath, "r");
-    tokenize(buffer_arena, load_file(file, sb), &tokens);
+    
     return 0;
 }
 
@@ -63,6 +63,9 @@ int main(int argc, char* argv[]) {
     
     buffer_arena = malloc(BUFF_S);
     tokens = vector_create(token);
+
+    #define TS "- [x] Finished\n- [ ] Unfinished"
+    tokenize(TS, sizeof (TS) - 1, &tokens);
 
     if (!argv[1] || !argv[2]) {
         printf("USAGE: %s <src> <dest>\n", argv[0]);
