@@ -22,9 +22,7 @@ vector _vector_create(size_t type_size) {
 }
 
 void* vector_add(vector* vec, void* element) {
-    puts("Made it here.\n");
     if (vec->element_size * (vec->length+1) >= vec->size) {
-        puts("Reallocating vector.");
         vec->elements = realloc(vec->elements, vec->size += vec->size / 2);
         vec->size += vec->size / 2;
     }

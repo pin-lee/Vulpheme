@@ -24,7 +24,8 @@ enum TokenFlag {
 	BREAK,
 	CODE_BLOCK,
 	CONTENT_EMBED,
-	HEADER_,
+	DEFINITION_DATA,// Note, the lexer cannot distinguish between text and 
+	HEADER_,		// <dt>, so it is the job of the parser to do that part.	
     HEADER_1,
 	HEADER_2,
 	HEADER_3,
@@ -61,6 +62,18 @@ enum TokenFlag {
 
 };
 
+enum MultiInlineTokenBitset {
+	MITD_BOLD,
+	MITD_HIGHLIGHT,
+	MITD_ITALIC,
+	MITD_SPOILER,
+	MITD_STRIKETHROUGH,
+	MITD_UNDERLINE,
+	_MITB_END
+};
+
+#define INLINE_ENDABLE_AMOUNT _MITB_END
+
 typedef struct token {
 	enum TokenFlag type;
 	size_t length;
@@ -72,56 +85,111 @@ token* token_create() {
 }
 
 int tokenize(char* text, size_t text_length, vector* tokens) {
-
-	printf("%ld\n", tokens->size);
     
     if (text_length == 0) return 0; // Skip empty file
 
     token* cur_token    = NULL;
+	token* overlapping_token_stack[INLINE_ENDABLE_AMOUNT] = { NULL };
     size_t token_length = 0;
     size_t cursor       = 0;
 
     #define CREATE  cur_token = vector_add(tokens, token_create());
-    #define TYPE    cur_token->type;
-    #define BODY    cur_token->body;
-    #define LENGTH  cur_token->length;
-    #define END     BODY = &text[cursor]; LENGTH = token_length; CREATE;
+    #define TYPE    cur_token->type
+    #define BODY    cur_token->body
+    #define LENGTH  cur_token->length
+    #define END     LENGTH = token_length;
+	#define NEXT	text[++cursor]
     
     CREATE;
-    //goto start;
+    goto start;
     while (cursor < text_length) {
 		switch (text[cursor]) {
+			// todo, do lookaheads at the top of each case
 			/* Block Token Processing
 			 * 
 			*/
 			case '\n': {
-				switch (++cursor) {
-					case '': {
-
+				END; CREATE;
+				switch (NEXT) {
+				start:
+					case '-': {
+						if (NEXT == ' ') {
+							if (NEXT == '[' &&
+							text[cursor + 2] == ']' &&
+							text[cursor + 3] == ' ') {
+								switch (NEXT) {
+									default:
+									case (' '): TYPE = TASK_UNFINSHED; break;
+									case ('x'):
+									case ('X'): TYPE = TASK_FINISHED; break;
+								} 
+								BODY = &text[cursor + 3]; cursor += 2;
+								goto lex_end;
+							}
+							// normal list
+							TYPE = LIST_ELEMENT;
+						}
 					} break;
+					case '#': {} break;
+					case '>': {} break;
+					case '`': {} break;
+					case ':': {} break;
 					default: {
 						// check numbers
 					} break;
 			}} break;
 
 			/* Escaped Character Processing: Skip */
-			case '\\': {} break;
-
+			case '\\': {
+				cursor++;
+			} break;
 
 			case '|': {} break;
-			case '`': {} break;
-			case 'h': {
-				/* Link processing
-				 *
-				*/
-				
+			case '`': {
+				// Note: Code blocks are handled above. This path is strictly for inline code.
 			} break;
-			case '[': {} break;
+
+			/* (Hyper)Links and Embeds
+			 *
+			*/
+			case '[': {
+				switch (NEXT) {
+					case 'h': {
+						/* Link processing
+						* Do a lookahead for the `p` in http(s)
+						* Do a lookahead for the `:`
+						* Check for the remaining `t`s and `/`s.
+						* If all checks, succeed, create URL token.
+						*/
+						
+					} break;
+				}
+			} break;
 			case '*': {} break;
 			case '_': {} break;
 			case '~': {} break;
 			case '=': {} break;
+			default: {
+				token_length++;
+			}
 		}
+	lex_end:
 		cursor++;
+		continue;
+	plain_text:
+		TYPE = PLAIN_TEXT;
+		goto lex_end;
 	}
+	END;
+
+	for (size_t i = 0; i < tokens->length; i++) {
+		printf("There are %ld tokens.", tokens->length);
+		token t = *(token*)vector_get(tokens, i);
+		printf("The current token is %ld characters long.", t.length);
+		for (size_t j = 0; j < t.length; j++) {
+			printf("%c", t.body[j]);
+		}
+		printf("\n");
+	}
+
 }

@@ -18,6 +18,7 @@ spoiler:            ||->||
 definition list
 highlight
 
+A conciious decision has been made to not implement automatic hyperlinking.
 
 heading id (linking to section as #), already supported as hyperlink.
 build a table of linked-to headers and insert into their HTML id.

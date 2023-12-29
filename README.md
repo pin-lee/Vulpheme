@@ -1,9 +1,9 @@
 ## Data Sources
 Vulpheme would not be possible without the work of the open source community. We all stand on each other's shoulders, forming a lattice of giants upon which to continue to build glorious feats. As such, it is vitally important to recognize and credit those who we have built upon.
 ### WordNet - Princeton University
-The WordNet database gives Vulpheme life. Without it, Vulpheme is only a record-keeping markdown compiler. If you are able, please donate to https://wordnet.princeton.edu/, and contact those in charge of Princeton to fund their linguistics and computer science departments better.
+The WordNet database gives Vulpheme life. Without it, Vulpheme is only a record-keeping markdown compiler. If you are able, please donate to [https://wordnet.princeton.edu/], and contact those in charge of Princeton to fund their linguistics and computer science departments better.
 ### morphemes - Colin Goldberg
-The morphemes dataset built by Colin Goldberg greatly increases the granularity that Vulpheme is able to operate at https://github.com/colingoldberg/morphemes. The morphemes set allows Vulpheme to determine positivity or negativity and better relate concepts.
+The morphemes dataset built by Colin Goldberg greatly increases the granularity that Vulpheme is able to operate at [https://github.com/colingoldberg/morphemes]. The morphemes set allows Vulpheme to determine positivity or negativity and better relate concepts.
 
 ---
 
