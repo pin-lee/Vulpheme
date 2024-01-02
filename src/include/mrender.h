@@ -108,9 +108,23 @@ int tokenize(char* text, size_t text_length, vector* tokens) {
     #define BODY    cur_token_ptr->body
     #define LENGTH  cur_token_ptr->length
 	#define NEXT	text[++cursor]
-	#define KILL(i)	text[i] = 0x1B;
-    
+	#define KILL(i)	text[i] = 27;
+
+	#define EFFECT_WRAP(character, IT, Flag, EndFlag) if (NEXT == character) {\
+					if (modifier_stack[IT]) {\
+						CREATE; TYPE = EndFlag;\
+						modifier_stack[IT] = NULL;\
+						KILL(cursor); KILL(cursor - 1);\
+					} else if (NEXT != ' ') {\
+						CREATE; modifier_stack[IT] = cur_token_ptr;\
+						TYPE = Flag;\
+						BODY = &text[cursor];\
+						KILL(cursor - 1); KILL(cursor - 2);\
+					}\
+				}
+
     CREATE;
+	size_t line_start = 0;
     goto start;
     while (cursor < text_length) {
 		switch (text[cursor]) {
@@ -119,8 +133,9 @@ int tokenize(char* text, size_t text_length, vector* tokens) {
 			 * 
 			*/
 			case '\n': {
+				CREATE; TYPE = BREAK; CREATE;
 				*modifier_stack = NULL;
-				CREATE;
+				line_start = cursor;
 				switch (NEXT) {
 				start:
 					case '-': {
@@ -144,16 +159,17 @@ int tokenize(char* text, size_t text_length, vector* tokens) {
 						}
 					} break;
 					case '#': {
-						int level = 1;
+						unsigned int level = 1;
 						while (NEXT == '#') { level++; };
 						if (text[cursor] == ' ') {
 							BODY = &NEXT;
 							if (level > 6) { level = 6; };
+							printf("Creating level %d header.\n", level);
 							TYPE = HEADER_ + level;
 							break;
 						} else {
 							TYPE = PLAIN_TEXT;;
-							BODY = &text[cursor - level + 1];
+							BODY = &text[cursor - level];
 						}
 					} break;
 					case '>': {
@@ -182,6 +198,10 @@ int tokenize(char* text, size_t text_length, vector* tokens) {
 								TYPE = PLAIN_TEXT;
 								BODY = &text[start];
 							}
+						} else {
+							TYPE = PLAIN_TEXT;
+							BODY = &text[line_start];
+							cursor = line_start + 1;
 						}
 					} break;
 			}} break;
@@ -192,20 +212,6 @@ int tokenize(char* text, size_t text_length, vector* tokens) {
 				cursor++;
 			} break;
 
-			case '|': {
-				if (NEXT == '|') {
-					if (modifier_stack[IT_SPOILER]) {
-						TYPE = END_SPOILER;
-						modifier_stack[IT_SPOILER] = NULL;
-						KILL(cursor); KILL(cursor - 1);
-					} else if (NEXT !=' ') {
-						CREATE; modifier_stack[IT_SPOILER] = cur_token_ptr;
-						TYPE = SPOILER;
-						BODY = &text[cursor];
-						KILL(cursor - 1); KILL(cursor - 1);
-					} 
-				}
-			} break;
 			case '`': { // code blocks can happen at end of line. inline can happen anywhere
 			
 			} break;
@@ -236,21 +242,29 @@ int tokenize(char* text, size_t text_length, vector* tokens) {
 					// words
 				}
 			} break;
-			case '*': {} break;
-			case '_': {} break;
-			case '~': {} break;
-			case '=': {} break;
+			case '*': {
+
+			} break;
+			case '|': { EFFECT_WRAP('|', IT_SPOILER, SPOILER, END_SPOILER); } break;
+			case '_': { EFFECT_WRAP('_', IT_UNDERLINE, UNDERLINE, END_UNDERLINE); } break;
+			case '~': { EFFECT_WRAP('~', IT_STRIKETHROUGH, STRIKETHROUGH, END_STRIKETHROUGH); } break;
+			case '=': { EFFECT_WRAP('=', IT_HIGHLIGHT, HIGHLIGHT, END_HIGHLIGHT); } break;
 			default: {
 				
 			}
 		}
+		for (int i = 0; i < 6; i++) {
+			if (modifier_stack[i] && modifier_stack[i] != cur_token_ptr) {
+				modifier_stack[i]->length++;
+			}
+		}
 		LENGTH++;
 		cursor++;
-		continue;
 	}
 
 	for (size_t i = 0; i < tokens->length; i++) {
 		token* t = (token*)vector_get(tokens, i);
+		if (t->body == NULL) continue;
 		for (size_t j = 0; j < t->length; j++) {
 			printf("%c", t->body[j]);
 		}

@@ -41,12 +41,14 @@ int handle_file(const char *fpath, const struct stat *sb, int typeflag, struct F
     switch (typeflag) {
         case FTW_F: {
             FILE* file = fopen(fpath, "r");
-            if (!load_file(file, sb)) { return 1; }
+            if (load_file(file, sb) == 1) {
+                printf("Failed to load file %s.", fpath);
+                return 1;
+            }
             tokenize(buffer_arena, sb->st_size, &tokens);
         } break;
         case FTW_D: return 0;
         default: {
-            puts("You broke something.");
             return 1;
         }
         // todo check if markdown
@@ -64,15 +66,11 @@ int main(int argc, char* argv[]) {
     buffer_arena = malloc(BUFF_S);
     tokens = vector_create(token);
 
-    #define TS "- [x] Finished\n- Normal List\n- [ ] Unfinished\n# Header\n## H2\n: eee\n> quote"
-    tokenize(TS, sizeof (TS), &tokens);
-
     if (!argv[1] || !argv[2]) {
         printf("USAGE: %s <src> <dest>\n", argv[0]);
         return 0;
     }
-    nftw(argv[1], handle_file, NOPENFD, 0);
-    
+    int ret = nftw(argv[1], handle_file, NOPENFD, 0);
     vector_free(&tokens);
-    return 0;
+    return ret;
 }
