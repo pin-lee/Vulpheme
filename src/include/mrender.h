@@ -88,7 +88,7 @@ token token_create() {
 }
 
 int tokenize(char* text, size_t text_length, vector* tokens) {
-    
+
     if (text_length == 0) return 0; // Skip empty file
 
 	token* cur_token_ptr = NULL;
@@ -250,7 +250,7 @@ int tokenize(char* text, size_t text_length, vector* tokens) {
 			case '~': { EFFECT_WRAP('~', IT_STRIKETHROUGH, STRIKETHROUGH, END_STRIKETHROUGH); } break;
 			case '=': { EFFECT_WRAP('=', IT_HIGHLIGHT, HIGHLIGHT, END_HIGHLIGHT); } break;
 			default: {
-				
+
 			}
 		}
 		for (int i = 0; i < 6; i++) {

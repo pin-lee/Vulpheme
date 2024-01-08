@@ -8,12 +8,16 @@
 #include "include/vector.h"
 #include "include/mrender.h"
 #include <sqlite3.h>
+#include <wn.h>
+#include "include/vulpheme.h"
 
 #define BUFF_S 1000
 
 char* buffer_arena = NULL;
 size_t buffer_size = BUFF_S;
 vector tokens;
+
+sqlite3* db = NULL;
 
 int get_str_len(const char* body) {
     int length = 0;
@@ -45,7 +49,7 @@ int handle_file(const char *fpath, const struct stat *sb, int typeflag, struct F
                 printf("Failed to load file %s.", fpath);
                 return 1;
             }
-            tokenize(buffer_arena, sb->st_size, &tokens);
+            parse_words(buffer_arena, sb->st_size, fpath, db);
         } break;
         case FTW_D: return 0;
         default: {
@@ -62,15 +66,27 @@ int handle_file(const char *fpath, const struct stat *sb, int typeflag, struct F
 }
 
 int main(int argc, char* argv[]) {
-    
+
+    char *zErrMsg = 0;
+    int rc;
+
+    rc = sqlite3_open("vulpheme.db", &db);
+    if (rc) {
+        puts("Database not found.");
+        sqlite3_close(db);
+        return rc;
+    }
+
     buffer_arena = malloc(BUFF_S);
     tokens = vector_create(token);
-
+/*
     if (!argv[1] || !argv[2]) {
         printf("USAGE: %s <src> <dest>\n", argv[0]);
         return 0;
     }
     int ret = nftw(argv[1], handle_file, NOPENFD, 0);
+*/
     vector_free(&tokens);
-    return ret;
+    sqlite3_free(db);
+    //return ret;
 }

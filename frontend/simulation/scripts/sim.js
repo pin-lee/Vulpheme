@@ -1,3 +1,15 @@
+const importObject = {
+    imports: { imported_func: (arg) => console.log(arg) },
+};  
+
+fetch("simple.wasm")
+  .then((response) => response.arrayBuffer())
+  .then((bytes) => WebAssembly.instantiate(bytes, importObject))
+  .then((results) => {
+    results.instance.exports.exported_func();
+  });
+
+
 /** @type {HTMLBodyElement} */
 const body = document.getElementById("body");
 
@@ -118,18 +130,7 @@ window.addEventListener("keyup", (event) => {
 });
 window.addEventListener("scroll", (event) => {});
 
-let nodes_oc = new OffscreenCanvas(canvas_width, canvas_height);
-let nodes_oc_ctx = nodes_oc.getContext("2d");
-let lines_oc = new OffscreenCanvas(canvas_width, canvas_height);
-let lines_oc_ctx = lines_oc.getContext("2d");
-
-const render_nodes_worker = new Worker("scripts/draw_nodes.js");
-const render_lines_worker = new Worker("scripts/draw_lines.js");
-
 function render() {
-
-    nodes_oc_ctx.clearRect(0, 0, canvas_width, canvas_height);
-    lines_oc_ctx.clearRect(0, 0, canvas_width, canvas_height);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
     ctx.strokeStyle = "white";
