@@ -13,7 +13,9 @@ enum FileType {
 	HTML,
 };
 
-const char* ADD_WORD = "INSERT INTO words (?, ?, ?);";
+const char* ADD_WORD = "IF NOT EXISTS\
+(SELECT * FROM words WHERE word=?) BEGIN\
+INSERT INTO words (?, ?, ?) END;";
 
 const char* ADD_FILE_WORD_ASSOCIATION = "IF EXISTS\
 (SELECT FROM file_word_associations WHERE id_f='?') BEGIN \
@@ -25,7 +27,30 @@ INSER INTO file_word_associations VALUES (?, ?, ?) END;";
 const char* GET_WORD_FREQUENCY = "SELECT occurence_frequency \
 FROM file_word_associations WHERE id_f='?' AND id_w='?';";
 
-int prepare_queries(sqlite3* database);
+
+#define STMT_ALLOC (sqlite3_stmt*) malloc(1024)
+sqlite3_stmt* add_word_stmnt;
+sqlite3_stmt* add_file_word_stmnt;
+sqlite3_stmt* get_word_freq_stmnt;
+sqlite3_stmt* add_word_word_stmnt;
+
+void prepare_statements(sqlite3* database) {
+	add_word_stmnt		= STMT_ALLOC;
+	add_file_word_stmnt	= STMT_ALLOC;
+	get_word_freq_stmnt	= STMT_ALLOC;
+	add_word_word_stmnt	= STMT_ALLOC;
+	#define PREP_STMNT(CCXPR, OPTR) sqlite3_prepare_v2(database, CCXPR, sizeof (CCXPR), &OPTR, NULL)
+	PREP_STMNT(ADD_WORD, add_word_stmnt);
+	PREP_STMNT(ADD_FILE_WORD_ASSOCIATION, add_file_word_stmnt);
+	PREP_STMNT(GET_WORD_FREQUENCY, get_word_freq_stmnt);
+}
+
+void free_statements() {
+	free(add_word_stmnt);
+	free(add_file_word_stmnt);
+	free(get_word_freq_stmnt);
+	free(add_word_word_stmnt);
+}
 
 void parse_words(char* text, size_t text_length, const char* file_path, sqlite3* database) {
 
