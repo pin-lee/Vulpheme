@@ -41,6 +41,7 @@ let x_click_offset = body.getBoundingClientRect().left - canvas.getBoundingClien
 let x_render_offset = 0;
 let y_render_offset = 0;
 
+let simulation_ui_scale = 1;
 
 function scale_graphics() {
     canvas.removeAttribute("width"); canvas.removeAttribute("height");
@@ -87,37 +88,44 @@ function register_node(event) {
         event.y - y_render_offset]);
 }
 
-let keydown_manager = [];
+const key_map_pairs = {
+    "ArrowUp": "w",
+    "ArrowLeft": "a",
+    "ArrowDown": "s",
+    "ArrowRight": "d",
+    "w": "w",
+    "a": "a",
+    "s": "s",
+    "d": "d",
+};
+let key_mapping = {
+    "w": false,
+    "a": false,
+    "s": false,
+    "d": false,
+};
 
 /**
  * @param {KeyboardEvent} event
  */
 function handle_key(event) {
-    const OFFSET = 10;
-    switch (event.key) {
-        case "ArrowUp":
-        case "w":
-            y_render_offset += OFFSET;
-            break;
-        case "ArrowDown":
-        case "s":
-            y_render_offset -= OFFSET;
-            break;
-        case "ArrowLeft":
-        case "a":
-            x_render_offset += OFFSET;
-            break;
-        case "ArrowRight":
-        case "d":
-            x_render_offset -= OFFSET;
-            break;
-        default:
-            return;
-    }
 
-    if (keydown_manager[event.key] === null) {
-        keydown_manager[event.key] = setInterval(handle_key, 1, event);
-    }
+    let is_key_down = event.type == "keydown";
+
+    key_mapping[key_map_pairs[event.key]] = is_key_down;
+
+    const OFFSET = 10;
+
+    y_render_offset += OFFSET * key_mapping["w"];
+    x_render_offset += OFFSET * key_mapping["a"];
+    y_render_offset -= OFFSET * key_mapping["s"];
+    x_render_offset -= OFFSET * key_mapping["d"];
+}
+
+/**
+ * @param {WheelEvent} event
+ */
+function scroll_zoom(event) {
 
 }
 
@@ -125,10 +133,8 @@ window.addEventListener("load", scale_graphics);
 window.addEventListener("resize", scale_graphics);
 window.addEventListener("click", register_node);
 window.addEventListener("keydown", handle_key);
-window.addEventListener("keyup", (event) => {
-    clearInterval(keydown_manager[event.key])
-});
-window.addEventListener("scroll", (event) => {});
+window.addEventListener("keyup", handle_key);
+window.addEventListener("wheel", scroll_zoom);
 
 function render() {
     ctx.clearRect(0, 0, canvas.width, canvas.height);
