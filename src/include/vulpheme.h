@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <wn.h>
 #include <string.h>
-#include <booleans.h>
+#include <stdbool.h>
 
 enum FileType {
 	MARKDOWN,
@@ -15,12 +15,15 @@ enum FileType {
 
 const char* ADD_WORD = "INSERT INTO words (?, ?, ?);";
 
-
-const char* ADD_FILE_WORD_ASSOCIATION = "INSERT INTO file";
+const char* ADD_FILE_WORD_ASSOCIATION = "IF EXISTS\
+(SELECT FROM file_word_associations WHERE id_f='?') BEGIN \
+UPDATE file_word_associations \
+SET occurence_frequency = occurence_frequency + 1 \
+WHERE id_f='? AND id_w='?' END ELSE BEGIN \
+INSER INTO file_word_associations VALUES (?, ?, ?) END;";
 
 const char* GET_WORD_FREQUENCY = "SELECT occurence_frequency \
 FROM file_word_associations WHERE id_f='?' AND id_w='?';";
-
 
 int prepare_queries(sqlite3* database);
 
@@ -42,7 +45,6 @@ void parse_words(char* text, size_t text_length, const char* file_path, sqlite3*
 		if (length == 0 || length > 100) { continue; }
 		memcpy(word_buffer, &text[start], length);
 		word_buffer[length] = '\0';
-
 
 		bool noun = findtheinfo_ds(word_buffer, NOUN, HYPERPTR, ALLSENSES);
 		bool verb = findtheinfo_ds(word_buffer, VERB, HYPERPTR, ALLSENSES);
