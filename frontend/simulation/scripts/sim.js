@@ -21,6 +21,10 @@ let canvas_height = 0;
 /** @type {CanvasRenderingContext2D} */
 const ctx = canvas.getContext("2d");
 
+/** @type {OffscreenCanvas} */
+let os_canvas = new OffscreenCanvas(canvas.width, canvas.height);
+let os_ctx = os_canvas.getContext("2d");
+
 const node_color_map = {
     "file": "rebeccapurple",
     "tag": "#006A4E",
@@ -41,8 +45,6 @@ let x_click_offset = body.getBoundingClientRect().left - canvas.getBoundingClien
 let x_render_offset = 0;
 let y_render_offset = 0;
 
-let simulation_ui_scale = 1;
-
 function scale_graphics() {
     canvas.removeAttribute("width"); canvas.removeAttribute("height");
     const cbr = canvas.getBoundingClientRect()
@@ -51,11 +53,14 @@ function scale_graphics() {
     canvas.setAttribute("width", width); canvas.setAttribute("height", height);
     node_sprite_size = calc_node_sprite_size();
     x_click_offset = body.getBoundingClientRect().left - cbr.left;
+    os_canvas.width = width; os_canvas.height = height;
+    os_ctx = os_canvas.getContext("2d");
 }
 
 function calc_node_sprite_size() {
     let { width, height } = canvas.getBoundingClientRect();
     return Math.round(((width + height) + 1)/ 2 * .01);
+
 }
 
 /** 
@@ -122,11 +127,18 @@ function handle_key(event) {
     x_render_offset -= OFFSET * key_mapping["d"];
 }
 
+let scaling_factor = 1;
+let real_scale = 1;
 /**
  * @param {WheelEvent} event
  */
 function scroll_zoom(event) {
-
+    scaling_factor = Math.abs(1 + .5* -Math.sign(event.deltaY));
+    os_ctx.scale(scaling_factor, scaling_factor);
+    //x_render_offset /= real_scale*real_scale;
+    //y_render_offset /= real_scale*real_scale;
+    real_scale *= scaling_factor;
+    console.log(real_scale);
 }
 
 window.addEventListener("load", scale_graphics);
@@ -136,25 +148,39 @@ window.addEventListener("keydown", handle_key);
 window.addEventListener("keyup", handle_key);
 window.addEventListener("wheel", scroll_zoom);
 
-function render() {
+async function render() {
+
+    os_ctx.clearRect(0, 0, 1000000, 1000000);
     ctx.clearRect(0, 0, canvas.width, canvas.height);
 
-    ctx.strokeStyle = "white";
-    ctx.beginPath();
-    for (let i = 0; i < coordinates.length; i++) {
-        const x1 = coordinates[i][0] + x_render_offset;
-        const y1 = coordinates[i][1] + y_render_offset;
-        for (let j = i + 1; j < coordinates.length; j++) {
-            const x2 = coordinates[j][0] + x_render_offset;
-            const y2 = coordinates[j][1] + y_render_offset;
-            ctx.moveTo(x1 + node_sprite_size, y1 + node_sprite_size);
-            ctx.lineTo(x2 + node_sprite_size, y2 + node_sprite_size);
-            
+    function draw_nodes() {
+        for (let i = 0; i < coordinates.length; i++) {
+            const x = coordinates[i][0] + x_render_offset;
+            const y = coordinates[i][1] + y_render_offset;
+            os_ctx.drawImage(node_sprite_map["word"], x, y);
         }
-        ctx.drawImage(node_sprite_map["word"], x1, y1);
     }
-    ctx.closePath();
-    ctx.stroke();
+
+    function draw_lines() {
+        os_ctx.strokeStyle = "white";
+        os_ctx.beginPath();
+        for (let i = 0; i < coordinates.length; i++) {
+            const x1 = coordinates[i][0] + x_render_offset;
+            const y1 = coordinates[i][1] + y_render_offset;
+            for (let j = i + 1; j < coordinates.length; j++) {
+                const x2 = coordinates[j][0] + x_render_offset;
+                const y2 = coordinates[j][1] + y_render_offset;
+                os_ctx.moveTo(x1 + node_sprite_size, y1 + node_sprite_size);
+                os_ctx.lineTo(x2 + node_sprite_size, y2 + node_sprite_size);
+            }
+        }
+        os_ctx.closePath();
+        os_ctx.stroke();
+    }
+    
+    draw_lines();
+    draw_nodes();
+    ctx.drawImage(os_canvas, 0, 0, canvas.width, canvas.height);
     requestAnimationFrame(render);
 }
 
