@@ -2,13 +2,14 @@ const importObject = {
     imports: { imported_func: (arg) => console.log(arg) },
 };  
 
-fetch("simple.wasm")
-  .then((response) => response.arrayBuffer())
-  .then((bytes) => WebAssembly.instantiate(bytes, importObject))
-  .then((results) => {
-    results.instance.exports.exported_func();
-  });
+async function get_wasm() {
+    const { instance } = await WebAssembly.instantiateStreaming(
+        fetch("engine/app.wasm")
+    );
+    console.log(instance.exports.hello());
+}
 
+get_wasm();
 
 /** @type {HTMLBodyElement} */
 const body = document.getElementById("body");

@@ -1,5 +1,7 @@
-#include <stdio.h>
-
 int main() {
-    puts("Hello, world! This is WASM!");
+    return 0;
+}
+
+int hello() {
+    return 42;
 }
