@@ -9,7 +9,7 @@
    -Wl,--no-entry \
    -Wl,--export-all \
    -Wl,--lto-O3 \
-  -Wl,-z,stack-size=$[8 * 1024 * 1024] \
+  -Wl,-z,stack-size=$[8 * 1024] \
    -o app.wasm \
    app.c
 

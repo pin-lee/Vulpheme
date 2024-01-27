@@ -14,7 +14,7 @@ enum FileType {
 };
 
 const char* ADD_WORD = "IF NOT EXISTS\
-(SELECT * FROM words WHERE word=?) BEGIN\
+(SELECT * FROM words WHERE word='?') BEGIN\
 INSERT INTO words (?, ?, ?) END;";
 
 const char* ADD_FILE_WORD_ASSOCIATION = "IF EXISTS\
